@@ -94,13 +94,16 @@ const corsOptions = {
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true,
+  credentials: false,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Request-ID'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Request-ID', 'Accept', 'Origin'],
   optionsSuccessStatus: 200 // For legacy browser support
 };
 
 app.use(cors(corsOptions));
+
+// Handle preflight requests explicitly
+app.options('*', cors(corsOptions));
 
 // Debugging middleware to log requests
 app.use((req, res, next) => {
