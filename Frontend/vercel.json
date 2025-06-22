@@ -1,0 +1,66 @@
+{
+  "framework": "create-react-app",
+  "buildCommand": "npm run build",
+  "outputDirectory": "build",
+  "installCommand": "npm install",
+  "devCommand": "npm start",
+  "env": {
+    "REACT_APP_ENVIRONMENT": "production",
+    "REACT_APP_SCHOOL_NAME": "Ade-Royal Group of Schools",
+    "REACT_APP_VERSION": "1.0.0",
+    "GENERATE_SOURCEMAP": "false"
+  },
+  "build": {
+    "env": {
+      "REACT_APP_ENVIRONMENT": "production",
+      "GENERATE_SOURCEMAP": "false"
+    }
+  },
+  "functions": {
+    "app/api/**": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://your-backend-app.onrender.com/api/$1"
+    },
+    {
+      "source": "/((?!api).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    },
+    {
+      "source": "/static/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ]
+} 

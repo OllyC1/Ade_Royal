@@ -1,0 +1,437 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(135deg, #f0f8ff 0%, #f8fafc 100%);
+  color: #334155;
+  min-height: 100vh;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* Beautiful Background Patterns */
+.bg-royal-pattern {
+  background: 
+    radial-gradient(circle at 25% 25%, #0284c7 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, #dc143c 0%, transparent 50%),
+    linear-gradient(135deg, #f0f8ff 0%, #fdf4f5 100%);
+  background-size: 800px 600px, 600px 800px, 100% 100%;
+  background-position: 0% 0%, 100% 100%, 0% 0%;
+  animation: subtle-float 20s ease-in-out infinite;
+}
+
+.bg-blue-elegance {
+  background: linear-gradient(135deg, #0284c7 0%, #075985 100%);
+  position: relative;
+}
+
+.bg-blue-elegance::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.bg-wine-elegance {
+  background: linear-gradient(135deg, #dc143c 0%, #9f1239 100%);
+  position: relative;
+}
+
+.bg-wine-elegance::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 30% 70%, rgba(255,255,255,0.1) 0%, transparent 50%),
+    radial-gradient(circle at 70% 30%, rgba(255,255,255,0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.bg-light-pattern {
+  background: 
+    radial-gradient(circle at 20% 20%, rgba(2, 132, 199, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(220, 20, 60, 0.05) 0%, transparent 50%),
+    linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  background-size: 600px 600px, 600px 600px, 100% 100%;
+}
+
+@keyframes subtle-float {
+  0%, 100% { 
+    background-position: 0% 0%, 100% 100%, 0% 0%; 
+  }
+  50% { 
+    background-position: 10% 10%, 90% 90%, 0% 0%; 
+  }
+}
+
+/* Custom scrollbar with theme colors */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #0284c7, #dc143c);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #075985, #9f1239);
+}
+
+/* Ade-Royal Brand Loading Spinner */
+.loading-spinner {
+  border: 4px solid #e2e8f0;
+  border-top: 4px solid #0284c7;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: royal-spin 1.2s linear infinite;
+}
+
+@keyframes royal-spin {
+  0% { 
+    transform: rotate(0deg);
+    border-top-color: #0284c7;
+  }
+  50% { 
+    border-top-color: #dc143c;
+  }
+  100% { 
+    transform: rotate(360deg);
+    border-top-color: #0284c7;
+  }
+}
+
+/* Enhanced button styles with separate blue/wine themes */
+.btn-primary {
+  @apply bg-royal-blue-500 hover:bg-royal-blue-600 text-white font-semibold py-3 px-6 rounded-xl shadow-soft hover:shadow-medium transition-all duration-300 transform hover:-translate-y-0.5;
+}
+
+.btn-primary-wine {
+  @apply bg-royal-wine-500 hover:bg-royal-wine-600 text-white font-semibold py-3 px-6 rounded-xl shadow-soft hover:shadow-medium transition-all duration-300 transform hover:-translate-y-0.5;
+}
+
+.btn-secondary {
+  @apply bg-white hover:bg-slate-50 text-slate-700 font-medium py-3 px-6 rounded-xl border border-slate-200 hover:border-slate-300 shadow-soft hover:shadow-medium transition-all duration-300;
+}
+
+.btn-danger {
+  @apply bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-xl shadow-soft hover:shadow-medium transition-all duration-300 transform hover:-translate-y-0.5;
+}
+
+.btn-success {
+  @apply bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-xl shadow-soft hover:shadow-medium transition-all duration-300 transform hover:-translate-y-0.5;
+}
+
+.btn-outline-blue {
+  @apply border-2 border-royal-blue-500 text-royal-blue-600 hover:bg-royal-blue-500 hover:text-white font-medium py-2.5 px-5 rounded-xl transition-all duration-300;
+}
+
+.btn-outline-wine {
+  @apply border-2 border-royal-wine-500 text-royal-wine-600 hover:bg-royal-wine-500 hover:text-white font-medium py-2.5 px-5 rounded-xl transition-all duration-300;
+}
+
+/* Enhanced form styles */
+.form-input {
+  @apply w-full px-4 py-3 border border-slate-200 rounded-xl bg-white/80 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-royal-blue-500 focus:border-transparent transition-all duration-200 placeholder-slate-400;
+}
+
+.form-input:focus {
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.form-label {
+  @apply block text-sm font-semibold text-slate-700 mb-2 tracking-wide;
+}
+
+/* Enhanced card styles with theme backgrounds */
+.card {
+  @apply bg-white/90 backdrop-blur-sm rounded-2xl shadow-soft hover:shadow-medium p-6 transition-all duration-300 border border-slate-100;
+}
+
+.card-header {
+  @apply border-b border-slate-100 pb-4 mb-6;
+}
+
+.card-blue {
+  @apply bg-royal-blue-50/80 backdrop-blur-sm rounded-2xl shadow-soft p-6 border border-royal-blue-100;
+}
+
+.card-wine {
+  @apply bg-royal-wine-50/80 backdrop-blur-sm rounded-2xl shadow-soft p-6 border border-royal-wine-100;
+}
+
+.card-gradient-blue {
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.05) 0%, rgba(2, 132, 199, 0.02) 100%);
+  @apply backdrop-blur-sm rounded-2xl shadow-soft p-6 border border-royal-blue-100;
+}
+
+.card-gradient-wine {
+  background: linear-gradient(135deg, rgba(220, 20, 60, 0.05) 0%, rgba(220, 20, 60, 0.02) 100%);
+  @apply backdrop-blur-sm rounded-2xl shadow-soft p-6 border border-royal-wine-100;
+}
+
+/* Page headers with theme backgrounds */
+.page-header {
+  @apply mb-8 pb-6 border-b border-slate-200;
+}
+
+.page-header-blue {
+  @apply bg-blue-elegance text-white rounded-2xl p-6 shadow-medium mb-8;
+}
+
+.page-header-wine {
+  @apply bg-wine-elegance text-white rounded-2xl p-6 shadow-medium mb-8;
+}
+
+.page-title {
+  @apply text-3xl font-bold text-slate-800 mb-2;
+}
+
+.page-title-white {
+  @apply text-3xl font-bold text-white mb-2;
+}
+
+.page-subtitle {
+  @apply text-lg text-slate-600 font-medium;
+}
+
+.page-subtitle-white {
+  @apply text-lg text-blue-100 font-medium;
+}
+
+/* Animation classes */
+.fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.slide-up {
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Exam-specific styles with theme colors */
+.timer-normal {
+  @apply text-royal-blue-600 bg-royal-blue-50 border-royal-blue-200 font-semibold;
+}
+
+.timer-warning {
+  @apply text-amber-600 bg-amber-50 border-amber-200 font-semibold animate-pulse;
+}
+
+.timer-danger {
+  @apply text-red-600 bg-red-50 border-red-200 font-bold animate-pulse;
+}
+
+/* Question navigation with separate theme colors */
+.question-nav-item {
+  @apply w-12 h-12 rounded-xl border-2 flex items-center justify-center text-sm font-semibold cursor-pointer transition-all duration-300 hover:shadow-soft;
+}
+
+.question-nav-item.answered {
+  @apply bg-green-50 border-green-300 text-green-700 shadow-soft;
+}
+
+.question-nav-item.current-blue {
+  @apply bg-royal-blue-500 border-royal-blue-500 text-white shadow-medium;
+}
+
+.question-nav-item.current-wine {
+  @apply bg-royal-wine-500 border-royal-wine-500 text-white shadow-medium;
+}
+
+.question-nav-item.unanswered {
+  @apply bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300;
+}
+
+.question-nav-item.flagged {
+  @apply bg-amber-50 border-amber-300 text-amber-700;
+}
+
+/* Modal styles with theme backgrounds */
+.modal-overlay {
+  @apply fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 backdrop-blur-sm;
+}
+
+.modal-content {
+  @apply bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl max-w-md w-full mx-4 p-8 animate-slide-up border border-slate-200;
+}
+
+/* Status badges with theme colors */
+.status-badge {
+  @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase;
+}
+
+.status-active-blue {
+  @apply bg-royal-blue-100 text-royal-blue-800;
+}
+
+.status-active-wine {
+  @apply bg-royal-wine-100 text-royal-wine-800;
+}
+
+.status-active {
+  @apply bg-green-100 text-green-800;
+}
+
+.status-inactive {
+  @apply bg-slate-100 text-slate-800;
+}
+
+.status-pending {
+  @apply bg-amber-100 text-amber-800;
+}
+
+.status-expired {
+  @apply bg-red-100 text-red-800;
+}
+
+/* Academic-focused design elements with theme backgrounds */
+.academic-header-blue {
+  @apply bg-blue-elegance text-white rounded-2xl p-6 shadow-medium relative overflow-hidden;
+}
+
+.academic-header-wine {
+  @apply bg-wine-elegance text-white rounded-2xl p-6 shadow-medium relative overflow-hidden;
+}
+
+.grade-display-blue {
+  @apply text-4xl font-bold text-royal-blue-600;
+}
+
+.grade-display-wine {
+  @apply text-4xl font-bold text-royal-wine-600;
+}
+
+/* Student-friendly hover effects */
+.hover-lift {
+  @apply transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-large;
+}
+
+.hover-lift-blue {
+  @apply transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-large hover:shadow-royal-blue-500/20;
+}
+
+.hover-lift-wine {
+  @apply transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-large hover:shadow-royal-wine-500/20;
+}
+
+/* Navigation active states with theme colors */
+.nav-active-blue {
+  @apply bg-royal-blue-500 text-white;
+}
+
+.nav-active-wine {
+  @apply bg-royal-wine-500 text-white;
+}
+
+.nav-hover-blue {
+  @apply hover:bg-royal-blue-50 hover:text-royal-blue-700;
+}
+
+.nav-hover-wine {
+  @apply hover:bg-royal-wine-50 hover:text-royal-wine-700;
+}
+
+/* Responsive text sizing for students */
+@screen sm {
+  .page-title {
+    @apply text-4xl;
+  }
+  
+  .page-subtitle {
+    @apply text-xl;
+  }
+}
+
+/* Accessibility improvements */
+.focus-ring-blue {
+  @apply focus:outline-none focus:ring-2 focus:ring-royal-blue-500 focus:ring-offset-2 focus:ring-offset-white;
+}
+
+.focus-ring-wine {
+  @apply focus:outline-none focus:ring-2 focus:ring-royal-wine-500 focus:ring-offset-2 focus:ring-offset-white;
+}
+
+/* Decorative elements */
+.decoration-dots {
+  background-image: radial-gradient(circle, rgba(2, 132, 199, 0.2) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.decoration-grid {
+  background-image: 
+    linear-gradient(rgba(2, 132, 199, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(2, 132, 199, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Print styles for exam results */
+@media print {
+  body {
+    background: white !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+  
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+    background: white !important;
+  }
+} 
