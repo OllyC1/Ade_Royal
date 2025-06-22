@@ -67,7 +67,8 @@ const corsOptions = {
       'http://localhost:3001',
       'http://127.0.0.1:3001',
       'http://localhost:5000',  // Allow backend self-requests
-      'http://127.0.0.1:5000'   // Allow backend self-requests
+      'http://127.0.0.1:5000',  // Allow backend self-requests
+      'https://ade-royal.vercel.app'  // Production frontend
     ];
     
     // Add production frontend URL
