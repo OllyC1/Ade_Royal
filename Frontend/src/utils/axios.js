@@ -20,7 +20,7 @@ axios.defaults.timeout = 30000; // 30 second timeout
 
 // Add support for credentials in production
 if (process.env.NODE_ENV === 'production') {
-  axios.defaults.withCredentials = false; // Set to true if you need cookies
+  axios.defaults.withCredentials = true; // Enable credentials for CORS
 }
 
 // Request interceptor
@@ -35,12 +35,7 @@ axios.interceptors.request.use(
     // Add request ID for tracking
     config.headers['X-Request-ID'] = Date.now().toString(36) + Math.random().toString(36).substr(2);
 
-    // Add CORS headers for production
-    if (process.env.NODE_ENV === 'production') {
-      config.headers['Access-Control-Allow-Origin'] = '*';
-      config.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, PATCH, OPTIONS';
-      config.headers['Access-Control-Allow-Headers'] = 'Origin, Content-Type, X-Auth-Token, Authorization';
-    }
+    // Don't add CORS headers from client - these should come from server only
 
     // Log request in development
     if (process.env.NODE_ENV === 'development') {
