@@ -55,55 +55,54 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// CORS configuration
+// CORS configuration - Simplified and more permissive for production deployment
 const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    const allowedOrigins = [
-      'http://localhost:3000',
-      'http://127.0.0.1:3000',
-      'http://localhost:3001',
-      'http://127.0.0.1:3001',
-      'http://localhost:5000',  // Allow backend self-requests
-      'http://127.0.0.1:5000',  // Allow backend self-requests
-      'https://ade-royal.vercel.app'  // Production frontend
-    ];
-    
-    // Add production frontend URL
-    if (process.env.FRONTEND_URL) {
-      allowedOrigins.push(process.env.FRONTEND_URL);
-    }
-    
-    // Add CORS_ORIGIN environment variable for production
-    if (process.env.CORS_ORIGIN) {
-      const corsOrigins = process.env.CORS_ORIGIN.split(',').map(origin => origin.trim());
-      allowedOrigins.push(...corsOrigins);
-    }
-    
-    // In development, be more permissive
-    if (process.env.NODE_ENV === 'development') {
-      return callback(null, true);
-    }
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.log('CORS blocked origin:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: true,  // Allow all origins for now to debug
   credentials: false,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Request-ID', 'Accept', 'Origin'],
-  optionsSuccessStatus: 200 // For legacy browser support
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD', 'PATCH'],
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'X-Requested-With', 
+    'X-Request-ID', 
+    'Accept', 
+    'Origin',
+    'Access-Control-Request-Method',
+    'Access-Control-Request-Headers'
+  ],
+  exposedHeaders: ['Content-Length', 'X-Foo', 'X-Bar'],
+  optionsSuccessStatus: 200,
+  preflightContinue: false
 };
 
+// Apply CORS middleware
 app.use(cors(corsOptions));
 
-// Handle preflight requests explicitly
-app.options('*', cors(corsOptions));
+// Additional manual CORS headers for extra compatibility
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  
+  // Allow specific origins or all if not specified
+  if (origin === 'https://ade-royal.vercel.app' || 
+      origin === 'http://localhost:3000' || 
+      origin === 'http://127.0.0.1:3000' ||
+      !origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  }
+  
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-Request-ID, Accept, Origin');
+  res.setHeader('Access-Control-Allow-Credentials', 'false');
+  res.setHeader('Access-Control-Max-Age', '86400');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+  
+  next();
+});
 
 // Debugging middleware to log requests
 app.use((req, res, next) => {
