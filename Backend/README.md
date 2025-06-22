@@ -79,7 +79,7 @@ A comprehensive Computer-Based Testing (CBT) system backend built with Node.js, 
    NODE_ENV=development
    
    # Admin Default Credentials
-   ADMIN_EMAIL=admin@aderoyal.edu.ng
+   ADMIN_EMAIL=admin@aderoyalschools.org.ng
    ADMIN_PASSWORD=admin123
    ```
 
@@ -339,7 +339,7 @@ Authorization: Bearer <student_token>
 
 When the server starts for the first time, a default admin account is created:
 
-- **Email**: admin@aderoyal.edu.ng
+- **Email**: admin@aderoyalschools.org.ng
 - **Password**: admin123
 
 ⚠️ **Important**: Change the default password immediately after first login.

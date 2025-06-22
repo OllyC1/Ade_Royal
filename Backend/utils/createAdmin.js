@@ -14,7 +14,7 @@ const createDefaultAdmin = async () => {
     const adminData = {
       firstName: 'System',
       lastName: 'Administrator',
-      email: process.env.ADMIN_EMAIL || 'admin@aderoyal.edu.ng',
+      email: process.env.ADMIN_EMAIL || 'admin@aderoyalschools.org.ng',
       password: process.env.ADMIN_PASSWORD || 'admin123',
       role: 'admin',
       isActive: true

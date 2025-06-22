@@ -121,9 +121,9 @@ const UserManagement = () => {
     const firstName = formData.firstName.toLowerCase().trim();
     const lastName = formData.lastName.toLowerCase().trim();
     
-    // Auto-generate email in the format: firstnamelastname@aderoyal.edu.ng
+    // Auto-generate email in the format: firstnamelastname@aderoyalschools.org.ng
     const emailUsername = `${firstName}${lastName}`.replace(/\s+/g, '');
-    const email = `${emailUsername}@aderoyal.edu.ng`;
+    const email = `${emailUsername}@aderoyalschools.org.ng`;
     
     // Generate a simple password: firstname + 3 random digits
     const randomNum = Math.floor(Math.random() * 900) + 100; // 3-digit number
@@ -638,7 +638,7 @@ const UserManagement = () => {
                           // Auto-generate email when names change
                           if (e.target.value && formData.lastName) {
                             const emailUsername = `${e.target.value.toLowerCase().trim()}${formData.lastName.toLowerCase().trim()}`.replace(/\s+/g, '');
-                            const email = `${emailUsername}@aderoyal.edu.ng`;
+                            const email = `${emailUsername}@aderoyalschools.org.ng`;
                             setFormData(prev => ({...prev, firstName: e.target.value, email}));
                           }
                         }}
@@ -656,7 +656,7 @@ const UserManagement = () => {
                           // Auto-generate email when names change
                           if (formData.firstName && e.target.value) {
                             const emailUsername = `${formData.firstName.toLowerCase().trim()}${e.target.value.toLowerCase().trim()}`.replace(/\s+/g, '');
-                            const email = `${emailUsername}@aderoyal.edu.ng`;
+                            const email = `${emailUsername}@aderoyalschools.org.ng`;
                             setFormData(prev => ({...prev, lastName: e.target.value, email}));
                           }
                         }}
@@ -690,7 +690,7 @@ const UserManagement = () => {
                         placeholder="Enter first and last name to generate email"
                       />
                       <p className="text-xs text-gray-500 mt-1">
-                        Email will be auto-generated as: firstnamelastname@aderoyal.edu.ng
+                        Email will be auto-generated as: firstnamelastname@aderoyalschools.org.ng
                       </p>
                     </div>
                     <div>

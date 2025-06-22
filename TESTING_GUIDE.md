@@ -39,15 +39,15 @@ JWT_EXPIRES_IN=7d
 ## 🔐 **Default Login Credentials**
 
 ### Admin Account
-- **Email:** admin@aderoyal.edu.ng
+- **Email:** admin@aderoyalschools.org.ng
 - **Password:** admin123
 
 ### Test Teacher Account
-- **Email:** teacher@aderoyal.edu.ng
+- **Email:** teacher@aderoyalschools.org.ng
 - **Password:** teacher123
 
 ### Test Student Account
-- **Email:** student@aderoyal.edu.ng
+- **Email:** student@aderoyalschools.org.ng
 - **Password:** student123
 
 ## 📋 **Testing Scenarios**

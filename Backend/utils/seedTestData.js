@@ -10,7 +10,7 @@ const seedTestData = async () => {
     console.log('🌱 Seeding test data...');
 
     // Clear existing data
-    await User.deleteMany({ email: { $ne: 'admin@aderoyal.edu.ng' } });
+    await User.deleteMany({ email: { $ne: 'admin@aderoyalschools.org.ng' } });
     await Class.deleteMany({});
     await Subject.deleteMany({});
     await Question.deleteMany({});
@@ -44,7 +44,7 @@ const seedTestData = async () => {
     const teacher = await User.create({
       firstName: 'John',
       lastName: 'Teacher',
-      email: 'teacher@aderoyal.edu.ng',
+      email: 'teacher@aderoyalschools.org.ng',
       password: 'teacher123', // Let the User model's pre-save middleware hash this
       role: 'teacher',
       teacherId: 'TCH001',
@@ -61,7 +61,7 @@ const seedTestData = async () => {
       const student = await User.create({
         firstName: `Student${i}`,
         lastName: 'Test',
-        email: `student${i}@aderoyal.edu.ng`,
+        email: `student${i}@aderoyalschools.org.ng`,
         password: 'student123', // Let the User model's pre-save middleware hash this
         role: 'student',
         studentId: `STD00${i}`,
@@ -263,8 +263,8 @@ const seedTestData = async () => {
 
     console.log('\n🎉 Test data seeding completed successfully!');
     console.log('\n📋 Test Accounts Created:');
-    console.log('👨‍🏫 Teacher: teacher@aderoyal.edu.ng / teacher123');
-    console.log('👨‍🎓 Students: student1@aderoyal.edu.ng to student5@aderoyal.edu.ng / student123');
+    console.log('👨‍🏫 Teacher: teacher@aderoyalschools.org.ng / teacher123');
+    console.log('👨‍🎓 Students: student1@aderoyalschools.org.ng to student5@aderoyalschools.org.ng / student123');
     console.log('\n📚 Sample Exams:');
     console.log(`📝 Mathematics Mid-Term Test - Code: ${sampleExam.examCode} (Starts in 1 hour)`);
     console.log(`📝 English Language Quiz - Code: ${activeExam.examCode} (Active now!)`);

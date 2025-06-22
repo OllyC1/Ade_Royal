@@ -75,7 +75,7 @@ GENERATE_SOURCEMAP=false
 
 - **No demo credentials** visible to users
 - **Registration disabled** - admin must create accounts
-- **Default admin:** admin@aderoyal.edu.ng / admin123 (MUST change password)
+- **Default admin:** admin@aderoyalschools.org.ng / admin123 (MUST change password)
 - **Environment variables** contain all secrets
 - **HTTPS enforced** on both platforms
 

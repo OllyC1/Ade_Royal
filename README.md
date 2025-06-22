@@ -92,7 +92,7 @@ npm start
 The frontend will run on `http://localhost:3000`
 
 ### 4. Default Admin Access
-- **Email**: `admin@aderoyal.edu.ng`
+- **Email**: `admin@aderoyalschools.org.ng`
 - **Password**: `admin123`
 
 ⚠️ **Important**: Change the default admin password immediately after first login.

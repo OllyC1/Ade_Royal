@@ -110,7 +110,7 @@
 
 ### Admin Account
 - [ ] Default admin account created automatically
-- [ ] Login with: admin@aderoyal.edu.ng / admin123
+- [ ] Login with: admin@aderoyalschools.org.ng / admin123
 - [ ] **CRITICAL: Change admin password immediately**
 - [ ] Create additional admin users if needed
 
@@ -183,7 +183,7 @@
 ## 👥 Access Credentials
 
 **Default Admin:**
-- Email: admin@aderoyal.edu.ng
+- Email: admin@aderoyalschools.org.ng
 - Password: admin123 (CHANGE IMMEDIATELY)
 
 **Database:**

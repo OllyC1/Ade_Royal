@@ -29,9 +29,9 @@ npm run seed
 
 | Role | Email | Password | Purpose |
 |------|-------|----------|---------|
-| **Admin** | admin@aderoyal.edu.ng | admin123 | System management |
-| **Teacher** | teacher@aderoyal.edu.ng | teacher123 | Create/manage exams |
-| **Student** | student1@aderoyal.edu.ng | student123 | Take exams |
+| **Admin** | admin@aderoyalschools.org.ng | admin123 | System management |
+| **Teacher** | teacher@aderoyalschools.org.ng | teacher123 | Create/manage exams |
+| **Student** | student1@aderoyalschools.org.ng | student123 | Take exams |
 
 ---
 
@@ -164,7 +164,7 @@ mongod
 - **Active Exam:** Code `ENG001` (English Quiz)
 - **Upcoming Exam:** Code `MATH001` (Math Test)
 - **Sample Questions:** Mix of objective and theory
-- **Test Students:** student1-5@aderoyal.edu.ng
+- **Test Students:** student1-5@aderoyalschools.org.ng
 
 ---
 

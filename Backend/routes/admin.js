@@ -224,7 +224,7 @@ router.post('/users', [
 
     // Auto-generate email based on first and last name
     const emailUsername = `${firstName.toLowerCase().trim()}${lastName.toLowerCase().trim()}`.replace(/\s+/g, '');
-    const email = `${emailUsername}@aderoyal.edu.ng`;
+    const email = `${emailUsername}@aderoyalschools.org.ng`;
 
     // Check if user already exists with this auto-generated email
     const existingUser = await User.findOne({ email });

@@ -170,7 +170,7 @@ const DesignShowcase = () => {
                 <input 
                   type="email" 
                   className="form-input" 
-                  placeholder="student@aderoyal.edu.ng"
+                  placeholder="student@aderoyalschools.org.ng"
                 />
               </div>
               
