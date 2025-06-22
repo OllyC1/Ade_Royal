@@ -16,11 +16,6 @@
       "GENERATE_SOURCEMAP": "false"
     }
   },
-  "functions": {
-    "app/api/**": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "rewrites": [
     {
       "source": "/api/(.*)",
