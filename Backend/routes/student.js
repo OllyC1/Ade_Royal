@@ -572,6 +572,23 @@ router.post('/exams/:examId/submit', async (req, res) => {
 
     await exam.save();
 
+    // Send notification to teacher
+    try {
+      const notificationService = req.app.locals.notificationService;
+      if (notificationService) {
+        await notificationService.notifyExamSubmitted({
+          studentId: req.user._id,
+          teacherId: exam.teacher,
+          examId: exam._id,
+          examTitle: exam.title,
+          studentName: `${req.user.firstName} ${req.user.lastName}`
+        });
+      }
+    } catch (notificationError) {
+      console.error('Error sending submission notification:', notificationError);
+      // Don't fail the submission if notification fails
+    }
+
     // Only show basic submission confirmation - no scores or grades
     let responseData = {
       submitted: true,

@@ -31,14 +31,20 @@ export const SocketProvider = ({ children }) => {
     }
 
     // Initialize socket connection with stable configuration
-    const newSocket = io(process.env.REACT_APP_SERVER_URL || '', {
+    const serverUrl = process.env.REACT_APP_SERVER_URL || process.env.REACT_APP_API_BASE_URL || '';
+    console.log('Connecting to socket server:', serverUrl);
+    
+    const newSocket = io(serverUrl, {
       auth: {
         token: token,
       },
       autoConnect: true,
-      reconnection: false, // Disable automatic reconnection to prevent loops
-      timeout: 10000,
-      forceNew: false // Don't force new connection
+      reconnection: true,
+      reconnectionAttempts: 3,
+      reconnectionDelay: 1000,
+      timeout: 20000,
+      forceNew: false,
+      transports: ['websocket', 'polling'] // Allow both transports
     });
 
     socketRef.current = newSocket;
@@ -73,7 +79,17 @@ export const SocketProvider = ({ children }) => {
     });
 
     newSocket.on('connect_error', (error) => {
-      console.error('Socket connection error:', error);
+      console.warn('Socket connection error (non-critical):', error.message);
+      setIsConnected(false);
+      // Don't show error toasts for socket issues since they're not critical
+    });
+
+    newSocket.on('reconnect_error', (error) => {
+      console.warn('Socket reconnection error (non-critical):', error.message);
+    });
+
+    newSocket.on('reconnect_failed', () => {
+      console.warn('Socket reconnection failed - continuing without real-time features');
       setIsConnected(false);
     });
 
@@ -102,15 +118,22 @@ export const SocketProvider = ({ children }) => {
   useEffect(() => {
     if (isAuthenticated && user && token && !connectionInitialized.current) {
       console.log('User authenticated, initializing socket connection');
-      initializeSocket();
+      try {
+        initializeSocket();
+      } catch (error) {
+        console.warn('Failed to initialize socket connection - continuing without real-time features:', error.message);
+        setIsConnected(false);
+      }
     } else if (!isAuthenticated && socketRef.current) {
       console.log('User not authenticated, cleaning up socket');
       // Clean up when user logs out
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
       }
-      socketRef.current.disconnect();
-      socketRef.current = null;
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
       setSocket(null);
       setIsConnected(false);
       connectionInitialized.current = false;

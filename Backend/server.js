@@ -171,8 +171,18 @@ mongoose.connect(process.env.MONGODB_URI, {
   process.exit(1);
 });
 
+// Initialize notification service
+const NotificationService = require('./utils/notificationService');
+const notificationService = new NotificationService();
+
+// Store notification service in app locals for access in routes
+app.locals.notificationService = notificationService;
+
 // Socket.io for real-time features
 const activeUsers = new Map();
+
+// Set the Socket.IO instance in notification service
+notificationService.setIO(io);
 
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
@@ -182,7 +192,11 @@ io.on('connection', (socket) => {
     if (data && data.userId && data.role) {
       activeUsers.set(socket.id, { userId: data.userId, role: data.role });
       socket.join(`role-${data.role}`);
+      socket.join(`user-${data.userId}`); // Join user-specific room for notifications
       console.log(`User ${data.userId} (${data.role}) joined with socket ${socket.id}`);
+      
+      // Send current notification count
+      notificationService.sendNotificationCount(data.userId);
     }
   });
 
@@ -253,6 +267,7 @@ app.get('/api/health', (req, res) => {
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/teacher', require('./routes/teacher'));
 app.use('/api/student', require('./routes/student'));

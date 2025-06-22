@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SocketProvider } from './contexts/SocketContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicRoute from './components/PublicRoute';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -284,7 +285,8 @@ function App() {
     <ErrorBoundary errorMessage="A critical error occurred in the application. Please refresh the page.">
     <AuthProvider>
       <SocketProvider>
-        <AppRoutes />
+        <NotificationProvider>
+          <AppRoutes />
           {/* Toast notifications */}
           <Toaster
             position="top-right"
@@ -316,6 +318,7 @@ function App() {
               },
             }}
           />
+        </NotificationProvider>
       </SocketProvider>
     </AuthProvider>
     </ErrorBoundary>

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import NotificationDropdown from '../NotificationDropdown';
 import {
   Bars3Icon,
-  BellIcon,
   UserCircleIcon,
   ChevronDownIcon,
 } from '@heroicons/react/24/outline';
@@ -70,10 +70,7 @@ const Header = ({ onMenuClick, user }) => {
         {/* Right side - User actions */}
         <div className="flex items-center space-x-4">
           {/* Notifications */}
-          <button className="relative p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-200 focus-ring">
-            <BellIcon className="h-6 w-6" />
-            <span className="absolute -top-1 -right-1 h-3 w-3 bg-royal-wine-500 rounded-full border-2 border-white"></span>
-          </button>
+          <NotificationDropdown />
 
           {/* User menu */}
           <div className="relative">

@@ -868,6 +868,38 @@ router.post('/exams', [
     await exam.save();
     await exam.populate('subject class teacher');
 
+    // Send notifications to students in the selected class
+    try {
+      const notificationService = req.app.locals.notificationService;
+      if (notificationService) {
+        const Class = require('../models/Class');
+        const User = require('../models/User');
+        
+        // Get all students in the selected class
+        const students = await User.find({ 
+          class: classId, 
+          role: 'student', 
+          isActive: true 
+        }).select('_id');
+        
+        const studentIds = students.map(student => student._id);
+        
+        if (studentIds.length > 0) {
+          await notificationService.notifyExamCreated({
+            teacherId: req.user._id,
+            studentIds,
+            examId: exam._id,
+            examTitle: exam.title,
+            teacherName: `${req.user.firstName} ${req.user.lastName}`,
+            scheduledDate: exam.startTime
+          });
+        }
+      }
+    } catch (notificationError) {
+      console.error('Error sending exam creation notifications:', notificationError);
+      // Don't fail the exam creation if notification fails
+    }
+
     res.status(201).json({
       success: true,
       message: 'Exam created successfully',
@@ -1433,6 +1465,29 @@ router.post('/exams/:id/release-results', async (req, res) => {
     });
 
     await exam.save();
+
+    // Send notifications to all students who took the exam
+    try {
+      const notificationService = req.app.locals.notificationService;
+      if (notificationService) {
+        const studentIds = exam.attempts
+          .filter(attempt => attempt.isCompleted)
+          .map(attempt => attempt.student);
+
+        if (studentIds.length > 0) {
+          await notificationService.notifyResultPublished({
+            teacherId: req.user._id,
+            studentIds,
+            examId: exam._id,
+            examTitle: exam.title,
+            teacherName: `${req.user.firstName} ${req.user.lastName}`
+          });
+        }
+      }
+    } catch (notificationError) {
+      console.error('Error sending result release notifications:', notificationError);
+      // Don't fail the release if notification fails
+    }
 
     res.json({
       success: true,

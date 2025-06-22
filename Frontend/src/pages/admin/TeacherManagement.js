@@ -21,6 +21,7 @@ import toast from 'react-hot-toast';
 const TeacherManagement = () => {
   const [teachers, setTeachers] = useState([]);
   const [subjects, setSubjects] = useState([]);
+  const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -29,13 +30,13 @@ const TeacherManagement = () => {
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [assignments, setAssignments] = useState([]);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     password: '',
     teacherId: '',
-    subjects: [],
     phoneNumber: '',
     address: '',
     qualification: '',
@@ -46,6 +47,7 @@ const TeacherManagement = () => {
   useEffect(() => {
     fetchTeachers();
     fetchSubjects();
+    fetchClasses();
   }, [currentPage, searchTerm]);
 
   const fetchTeachers = async () => {
@@ -77,6 +79,15 @@ const TeacherManagement = () => {
     }
   };
 
+  const fetchClasses = async () => {
+    try {
+      const response = await axios.get('/api/admin/classes');
+      setClasses(response.data.data.classes || []);
+    } catch (error) {
+      console.error('Error fetching classes:', error);
+    }
+  };
+
   const handleAddTeacher = async (e) => {
     e.preventDefault();
     try {
@@ -84,7 +95,18 @@ const TeacherManagement = () => {
         ...formData,
         role: 'teacher'
       };
-      await axios.post('/api/admin/users', teacherData);
+      
+      // Create teacher first
+      const teacherResponse = await axios.post('/api/admin/users', teacherData);
+      const teacherId = teacherResponse.data.data.user._id;
+      
+      // Then handle assignments if any
+      if (assignments.length > 0) {
+        await axios.put(`/api/admin/teachers/${teacherId}/assignments`, {
+          assignments
+        });
+      }
+      
       toast.success('Teacher created successfully');
       setShowAddModal(false);
       resetForm();
@@ -97,7 +119,14 @@ const TeacherManagement = () => {
   const handleEditTeacher = async (e) => {
     e.preventDefault();
     try {
+      // Update teacher basic info
       await axios.put(`/api/admin/users/${selectedTeacher._id}`, formData);
+      
+      // Update assignments
+      await axios.put(`/api/admin/teachers/${selectedTeacher._id}/assignments`, {
+        assignments
+      });
+      
       toast.success('Teacher updated successfully');
       setShowEditModal(false);
       resetForm();
@@ -126,7 +155,6 @@ const TeacherManagement = () => {
       email: '',
       password: '',
       teacherId: '',
-      subjects: [],
       phoneNumber: '',
       address: '',
       qualification: '',
@@ -134,9 +162,10 @@ const TeacherManagement = () => {
       dateOfJoining: ''
     });
     setSelectedTeacher(null);
+    setAssignments([]);
   };
 
-  const openEditModal = (teacher) => {
+  const openEditModal = async (teacher) => {
     setSelectedTeacher(teacher);
     setFormData({
       firstName: teacher.firstName,
@@ -144,13 +173,22 @@ const TeacherManagement = () => {
       email: teacher.email,
       password: '',
       teacherId: teacher.teacherId || '',
-      subjects: teacher.subjects?.map(s => s._id) || [],
       phoneNumber: teacher.phoneNumber || '',
       address: teacher.address || '',
       qualification: teacher.qualification || '',
       experience: teacher.experience || '',
       dateOfJoining: teacher.dateOfJoining ? new Date(teacher.dateOfJoining).toISOString().split('T')[0] : ''
     });
+    
+    // Fetch current assignments
+    try {
+      const response = await axios.get(`/api/admin/teachers/${teacher._id}/assignments`);
+      setAssignments(response.data.data.assignments || []);
+    } catch (error) {
+      console.error('Error fetching assignments:', error);
+      setAssignments([]);
+    }
+    
     setShowEditModal(true);
   };
 
@@ -159,14 +197,22 @@ const TeacherManagement = () => {
     setShowViewModal(true);
   };
 
-  const handleSubjectChange = (subjectId) => {
-    setFormData(prev => ({
-      ...prev,
-      subjects: prev.subjects.includes(subjectId)
-        ? prev.subjects.filter(id => id !== subjectId)
-        : [...prev.subjects, subjectId]
-    }));
+  // Assignment functions
+  const addAssignment = () => {
+    setAssignments([...assignments, { subject: '', class: '' }]);
   };
+
+  const removeAssignment = (index) => {
+    setAssignments(assignments.filter((_, i) => i !== index));
+  };
+
+  const updateAssignment = (index, field, value) => {
+    const newAssignments = [...assignments];
+    newAssignments[index][field] = value;
+    setAssignments(newAssignments);
+  };
+
+
 
   const filteredTeachers = teachers.filter(teacher =>
     teacher.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -372,138 +418,192 @@ const TeacherManagement = () => {
         {/* Add Teacher Modal */}
         {showAddModal && (
           <div className="modal-overlay">
-            <div className="modal-content max-w-2xl">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Add New Teacher</h3>
-              <form onSubmit={handleAddTeacher} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+            <div className="modal-content max-w-2xl max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-white z-10 border-b border-gray-200 px-6 py-4">
+                <h3 className="text-lg font-medium text-gray-900">Add New Teacher</h3>
+              </div>
+              <div className="px-6 py-4">
+                <form onSubmit={handleAddTeacher} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="form-label">First Name</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={formData.firstName}
+                        onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="form-label">Last Name</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={formData.lastName}
+                        onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="form-label">Email</label>
+                      <input
+                        type="email"
+                        className="form-input"
+                        value={formData.email}
+                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="form-label">Teacher ID</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={formData.teacherId}
+                        onChange={(e) => setFormData({...formData, teacherId: e.target.value})}
+                        placeholder="e.g., TCH001"
+                      />
+                    </div>
+                  </div>
+
                   <div>
-                    <label className="form-label">First Name</label>
+                    <label className="form-label">Password</label>
                     <input
-                      type="text"
+                      type="password"
                       className="form-input"
-                      value={formData.firstName}
-                      onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                      value={formData.password}
+                      onChange={(e) => setFormData({...formData, password: e.target.value})}
                       required
                     />
                   </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="form-label">Phone Number</label>
+                      <input
+                        type="tel"
+                        className="form-input"
+                        value={formData.phoneNumber}
+                        onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <label className="form-label">Date of Joining</label>
+                      <input
+                        type="date"
+                        className="form-input"
+                        value={formData.dateOfJoining}
+                        onChange={(e) => setFormData({...formData, dateOfJoining: e.target.value})}
+                      />
+                    </div>
+                  </div>
+
                   <div>
-                    <label className="form-label">Last Name</label>
-                    <input
-                      type="text"
+                    <label className="form-label">Address</label>
+                    <textarea
                       className="form-input"
-                      value={formData.lastName}
-                      onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-                      required
+                      rows="2"
+                      value={formData.address}
+                      onChange={(e) => setFormData({...formData, address: e.target.value})}
                     />
                   </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="form-label">Qualification</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={formData.qualification}
+                        onChange={(e) => setFormData({...formData, qualification: e.target.value})}
+                        placeholder="e.g., B.Ed, M.Sc"
+                      />
+                    </div>
+                    <div>
+                      <label className="form-label">Experience (years)</label>
+                      <input
+                        type="number"
+                        className="form-input"
+                        value={formData.experience}
+                        onChange={(e) => setFormData({...formData, experience: e.target.value})}
+                        min="0"
+                      />
+                    </div>
+                  </div>
+
+                                  <div>
+                  <div className="flex justify-between items-center">
+                    <label className="form-label">Subject-Class Assignments</label>
+                    <button
+                      type="button"
+                      onClick={addAssignment}
+                      className="btn-secondary text-sm"
+                    >
+                      <PlusIcon className="h-4 w-4 mr-1" />
+                      Add Assignment
+                    </button>
+                  </div>
+
+                  {assignments.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500 border border-gray-200 rounded-lg mt-2">
+                      No assignments yet. Click "Add Assignment" to assign subjects and classes.
+                    </div>
+                  ) : (
+                    <div className="space-y-3 mt-2 max-h-60 overflow-y-auto">
+                      {assignments.map((assignment, index) => (
+                        <div key={index} className="grid grid-cols-5 gap-3 items-end p-3 border rounded-lg bg-gray-50">
+                          <div className="col-span-2">
+                            <label className="block text-xs font-medium text-gray-700 mb-1">Subject</label>
+                            <select
+                              className="form-input text-sm"
+                              value={assignment.subject}
+                              onChange={(e) => updateAssignment(index, 'subject', e.target.value)}
+                              required
+                            >
+                              <option value="">Select Subject</option>
+                              {subjects.map(subject => (
+                                <option key={subject._id} value={subject._id}>
+                                  {subject.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="col-span-2">
+                            <label className="block text-xs font-medium text-gray-700 mb-1">Class</label>
+                            <select
+                              className="form-input text-sm"
+                              value={assignment.class}
+                              onChange={(e) => updateAssignment(index, 'class', e.target.value)}
+                              required
+                            >
+                              <option value="">Select Class</option>
+                              {classes.map(cls => (
+                                <option key={cls._id} value={cls._id}>
+                                  {cls.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <button
+                              type="button"
+                              onClick={() => removeAssignment(index)}
+                              className="w-full px-2 py-1 text-xs text-red-600 hover:text-red-800 hover:bg-red-50 border border-red-200 rounded transition-colors"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="form-label">Email</label>
-                    <input
-                      type="email"
-                      className="form-input"
-                      value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="form-label">Teacher ID</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      value={formData.teacherId}
-                      onChange={(e) => setFormData({...formData, teacherId: e.target.value})}
-                      placeholder="e.g., TCH001"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="form-label">Password</label>
-                  <input
-                    type="password"
-                    className="form-input"
-                    value={formData.password}
-                    onChange={(e) => setFormData({...formData, password: e.target.value})}
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="form-label">Phone Number</label>
-                    <input
-                      type="tel"
-                      className="form-input"
-                      value={formData.phoneNumber}
-                      onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <label className="form-label">Date of Joining</label>
-                    <input
-                      type="date"
-                      className="form-input"
-                      value={formData.dateOfJoining}
-                      onChange={(e) => setFormData({...formData, dateOfJoining: e.target.value})}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="form-label">Address</label>
-                  <textarea
-                    className="form-input"
-                    rows="2"
-                    value={formData.address}
-                    onChange={(e) => setFormData({...formData, address: e.target.value})}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="form-label">Qualification</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      value={formData.qualification}
-                      onChange={(e) => setFormData({...formData, qualification: e.target.value})}
-                      placeholder="e.g., B.Ed, M.Sc"
-                    />
-                  </div>
-                  <div>
-                    <label className="form-label">Experience (years)</label>
-                    <input
-                      type="number"
-                      className="form-input"
-                      value={formData.experience}
-                      onChange={(e) => setFormData({...formData, experience: e.target.value})}
-                      min="0"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="form-label">Assign Subjects</label>
-                  <div className="grid grid-cols-2 gap-2 mt-2 max-h-40 overflow-y-auto">
-                    {subjects.map(subject => (
-                      <label key={subject._id} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={formData.subjects.includes(subject._id)}
-                          onChange={() => handleSubjectChange(subject._id)}
-                          className="mr-2"
-                        />
-                        {subject.name}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex justify-end space-x-3 pt-4">
+                <div className="sticky bottom-0 bg-white border-t border-gray-200 flex justify-end space-x-3 pt-4">
                   <button
                     type="button"
                     onClick={() => {
@@ -518,7 +618,8 @@ const TeacherManagement = () => {
                     Create Teacher
                   </button>
                 </div>
-              </form>
+                </form>
+              </div>
             </div>
           </div>
         )}
@@ -526,150 +627,205 @@ const TeacherManagement = () => {
         {/* Edit Teacher Modal */}
         {showEditModal && (
           <div className="modal-overlay">
-            <div className="modal-content max-w-2xl">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Edit Teacher</h3>
-              <form onSubmit={handleEditTeacher} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="form-label">First Name</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      value={formData.firstName}
-                      onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-                      required
-                    />
+            <div className="modal-content max-w-2xl max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-white z-10 border-b border-gray-200 px-6 py-4">
+                <h3 className="text-lg font-medium text-gray-900">Edit Teacher</h3>
+              </div>
+              <div className="px-6 py-4">
+                <form onSubmit={handleEditTeacher} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="form-label">First Name</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={formData.firstName}
+                        onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="form-label">Last Name</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={formData.lastName}
+                        onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                        required
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="form-label">Last Name</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      value={formData.lastName}
-                      onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-                      required
-                    />
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="form-label">Email</label>
+                      <input
+                        type="email"
+                        className="form-input"
+                        value={formData.email}
+                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="form-label">Teacher ID</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={formData.teacherId}
+                        onChange={(e) => setFormData({...formData, teacherId: e.target.value})}
+                      />
+                    </div>
+                  </div>
+
                   <div>
-                    <label className="form-label">Email</label>
+                    <label className="form-label">New Password (leave blank to keep current)</label>
                     <input
-                      type="email"
+                      type="password"
                       className="form-input"
-                      value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
-                      required
+                      value={formData.password}
+                      onChange={(e) => setFormData({...formData, password: e.target.value})}
                     />
                   </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="form-label">Phone Number</label>
+                      <input
+                        type="tel"
+                        className="form-input"
+                        value={formData.phoneNumber}
+                        onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <label className="form-label">Date of Joining</label>
+                      <input
+                        type="date"
+                        className="form-input"
+                        value={formData.dateOfJoining}
+                        onChange={(e) => setFormData({...formData, dateOfJoining: e.target.value})}
+                      />
+                    </div>
+                  </div>
+
                   <div>
-                    <label className="form-label">Teacher ID</label>
-                    <input
-                      type="text"
+                    <label className="form-label">Address</label>
+                    <textarea
                       className="form-input"
-                      value={formData.teacherId}
-                      onChange={(e) => setFormData({...formData, teacherId: e.target.value})}
+                      rows="2"
+                      value={formData.address}
+                      onChange={(e) => setFormData({...formData, address: e.target.value})}
                     />
                   </div>
-                </div>
 
-                <div>
-                  <label className="form-label">New Password (leave blank to keep current)</label>
-                  <input
-                    type="password"
-                    className="form-input"
-                    value={formData.password}
-                    onChange={(e) => setFormData({...formData, password: e.target.value})}
-                  />
-                </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="form-label">Qualification</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={formData.qualification}
+                        onChange={(e) => setFormData({...formData, qualification: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <label className="form-label">Experience (years)</label>
+                      <input
+                        type="number"
+                        className="form-input"
+                        value={formData.experience}
+                        onChange={(e) => setFormData({...formData, experience: e.target.value})}
+                        min="0"
+                      />
+                    </div>
+                  </div>
 
-                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="form-label">Phone Number</label>
-                    <input
-                      type="tel"
-                      className="form-input"
-                      value={formData.phoneNumber}
-                      onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <label className="form-label">Date of Joining</label>
-                    <input
-                      type="date"
-                      className="form-input"
-                      value={formData.dateOfJoining}
-                      onChange={(e) => setFormData({...formData, dateOfJoining: e.target.value})}
-                    />
-                  </div>
-                </div>
+                    <div className="flex justify-between items-center">
+                      <label className="form-label">Subject-Class Assignments</label>
+                      <button
+                        type="button"
+                        onClick={addAssignment}
+                        className="btn-secondary text-sm"
+                      >
+                        <PlusIcon className="h-4 w-4 mr-1" />
+                        Add Assignment
+                      </button>
+                    </div>
 
-                <div>
-                  <label className="form-label">Address</label>
-                  <textarea
-                    className="form-input"
-                    rows="2"
-                    value={formData.address}
-                    onChange={(e) => setFormData({...formData, address: e.target.value})}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="form-label">Qualification</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      value={formData.qualification}
-                      onChange={(e) => setFormData({...formData, qualification: e.target.value})}
-                    />
+                    {assignments.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500 border border-gray-200 rounded-lg mt-2">
+                        No assignments yet. Click "Add Assignment" to assign subjects and classes.
+                      </div>
+                    ) : (
+                      <div className="space-y-3 mt-2 max-h-60 overflow-y-auto">
+                        {assignments.map((assignment, index) => (
+                          <div key={index} className="grid grid-cols-5 gap-3 items-end p-3 border rounded-lg bg-gray-50">
+                            <div className="col-span-2">
+                              <label className="block text-xs font-medium text-gray-700 mb-1">Subject</label>
+                              <select
+                                className="form-input text-sm"
+                                value={assignment.subject}
+                                onChange={(e) => updateAssignment(index, 'subject', e.target.value)}
+                                required
+                              >
+                                <option value="">Select Subject</option>
+                                {subjects.map(subject => (
+                                  <option key={subject._id} value={subject._id}>
+                                    {subject.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="col-span-2">
+                              <label className="block text-xs font-medium text-gray-700 mb-1">Class</label>
+                              <select
+                                className="form-input text-sm"
+                                value={assignment.class}
+                                onChange={(e) => updateAssignment(index, 'class', e.target.value)}
+                                required
+                              >
+                                <option value="">Select Class</option>
+                                {classes.map(cls => (
+                                  <option key={cls._id} value={cls._id}>
+                                    {cls.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <div>
+                              <button
+                                type="button"
+                                onClick={() => removeAssignment(index)}
+                                className="w-full px-2 py-1 text-xs text-red-600 hover:text-red-800 hover:bg-red-50 border border-red-200 rounded transition-colors"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <label className="form-label">Experience (years)</label>
-                    <input
-                      type="number"
-                      className="form-input"
-                      value={formData.experience}
-                      onChange={(e) => setFormData({...formData, experience: e.target.value})}
-                      min="0"
-                    />
-                  </div>
-                </div>
 
-                <div>
-                  <label className="form-label">Assign Subjects</label>
-                  <div className="grid grid-cols-2 gap-2 mt-2 max-h-40 overflow-y-auto">
-                    {subjects.map(subject => (
-                      <label key={subject._id} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={formData.subjects.includes(subject._id)}
-                          onChange={() => handleSubjectChange(subject._id)}
-                          className="mr-2"
-                        />
-                        {subject.name}
-                      </label>
-                    ))}
+                  <div className="sticky bottom-0 bg-white border-t border-gray-200 flex justify-end space-x-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowEditModal(false);
+                        resetForm();
+                      }}
+                      className="btn-secondary"
+                    >
+                      Cancel
+                    </button>
+                    <button type="submit" className="btn-primary">
+                      Update Teacher
+                    </button>
                   </div>
-                </div>
-
-                <div className="flex justify-end space-x-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowEditModal(false);
-                      resetForm();
-                    }}
-                    className="btn-secondary"
-                  >
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn-primary">
-                    Update Teacher
-                  </button>
-                </div>
-              </form>
+                </form>
+              </div>
             </div>
           </div>
         )}
