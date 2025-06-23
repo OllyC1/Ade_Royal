@@ -211,8 +211,20 @@ router.post('/users', [
   })
 ], async (req, res) => {
   try {
+    // 🔍 DEBUG: Log the complete request body
+    console.log('🚀 USER CREATION REQUEST RECEIVED:');
+    console.log('==================================');
+    console.log('📦 Full req.body:', JSON.stringify(req.body, null, 2));
+    console.log('🔤 req.body.firstName:', `"${req.body.firstName}"`);
+    console.log('🔤 req.body.lastName:', `"${req.body.lastName}"`);
+    console.log('📧 req.body.email:', `"${req.body.email}"`);
+    console.log('🔑 req.body.password:', `"${req.body.password}"`);
+    console.log('👤 req.body.role:', `"${req.body.role}"`);
+    console.log('==================================');
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('❌ Validation errors:', errors.array());
       return res.status(400).json({
         success: false,
         message: 'Validation failed',
@@ -222,9 +234,26 @@ router.post('/users', [
 
     const { firstName, lastName, password, role, studentId, teacherId, class: classId, subjects } = req.body;
 
+    // 🔍 DEBUG: Log extracted values
+    console.log('🔍 EXTRACTED VALUES:');
+    console.log('firstName:', `"${firstName}"`);
+    console.log('lastName:', `"${lastName}"`);
+
+    // 🔍 DEBUG: Check if frontend sent an email field
+    if (req.body.email) {
+      console.log('⚠️  FRONTEND SENT EMAIL FIELD:', `"${req.body.email}"`);
+      console.log('🔄 Backend will IGNORE this and generate its own email');
+    }
+
     // Auto-generate email based on first and last name
     const emailUsername = `${firstName.toLowerCase().trim()}${lastName.toLowerCase().trim()}`.replace(/\s+/g, '');
     const email = `${emailUsername}@aderoyalschools.org.ng`;
+
+    // 🔍 DEBUG: Log email generation process
+    console.log('📧 EMAIL GENERATION:');
+    console.log('emailUsername:', `"${emailUsername}"`);
+    console.log('generated email:', `"${email}"`);
+    console.log('==================================');
 
     // Check if user already exists with this auto-generated email
     const existingUser = await User.findOne({ email });
@@ -282,8 +311,20 @@ router.post('/users', [
     if (classId && role === 'student') userData.class = classId;
     if (subjects && Array.isArray(subjects) && role === 'teacher') userData.subjects = subjects;
 
+    // 🔍 DEBUG: Log final user data before saving
+    console.log('💾 USER DATA TO BE SAVED:');
+    console.log(JSON.stringify(userData, null, 2));
+    console.log('==================================');
+
     const user = new User(userData);
-    await user.save();
+    
+    try {
+      await user.save();
+      console.log('✅ User saved successfully');
+    } catch (saveError) {
+      console.log('❌ User save error:', saveError);
+      throw saveError;
+    }
 
     // Populate the created user
     await user.populate('class subjects');
