@@ -19,7 +19,6 @@ const generateToken = (id) => {
 router.post('/register', [
   body('firstName').trim().isLength({ min: 2 }).withMessage('First name must be at least 2 characters'),
   body('lastName').trim().isLength({ min: 2 }).withMessage('Last name must be at least 2 characters'),
-  body('email').isEmail().normalizeEmail().withMessage('Please enter a valid email'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
   body('role').optional().isIn(['student', 'teacher']).withMessage('Invalid role')
 ], async (req, res) => {
@@ -34,14 +33,18 @@ router.post('/register', [
       });
     }
 
-    const { firstName, lastName, email, password, role, studentId, teacherId, class: classId } = req.body;
+    const { firstName, lastName, password, role, studentId, teacherId, class: classId } = req.body;
 
-    // Check if user already exists
+    // 🔧 AUTO-GENERATE EMAIL WITH CORRECT DOMAIN
+    const emailUsername = `${firstName.toLowerCase().trim()}${lastName.toLowerCase().trim()}`.replace(/\s+/g, '');
+    const email = `${emailUsername}@aderoyalschools.org.ng`;
+
+    // Check if user already exists with auto-generated email
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: 'User with this email already exists'
+        message: `User with email ${email} already exists. Please use different names or modify existing user.`
       });
     }
 
@@ -99,7 +102,12 @@ router.post('/register', [
           teacherId: user.teacherId,
           class: user.class
         },
-        token
+        token,
+        generatedEmail: email,
+        loginCredentials: {
+          email,
+          password
+        }
       }
     });
 

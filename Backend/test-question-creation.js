@@ -25,7 +25,7 @@ async function testQuestionCreation() {
       const testTeacher = new User({
         firstName: 'Test',
         lastName: 'Teacher',
-        email: 'test.teacher@aderoyal.edu.ng',
+        email: 'test.teacher@aderoyalschools.org.ng',
         password: 'password123',
         role: 'teacher',
         teacherId: 'T001',

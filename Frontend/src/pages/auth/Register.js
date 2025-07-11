@@ -8,7 +8,6 @@ const Register = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    email: '',
     password: '',
     confirmPassword: '',
     role: 'student',
@@ -69,11 +68,7 @@ const Register = () => {
       newErrors.lastName = 'Last name must be at least 2 characters';
     }
 
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
-    }
+    // Email is auto-generated, no validation needed
 
     if (!formData.password) {
       newErrors.password = 'Password is required';
@@ -114,7 +109,6 @@ const Register = () => {
       const registrationData = {
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
-        email: formData.email.toLowerCase().trim(),
         password: formData.password,
         role: formData.role,
       };
@@ -221,26 +215,20 @@ const Register = () => {
               </div>
             </div>
 
-            {/* Email */}
-            <div>
-              <label htmlFor="email" className="form-label">
-                Email Address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className={`form-input ${errors.email ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : ''}`}
-                placeholder="Enter your email"
-                value={formData.email}
-                onChange={handleChange}
-              />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-              )}
-            </div>
+            {/* Email Preview */}
+            {(formData.firstName || formData.lastName) && (
+              <div>
+                <label className="form-label">
+                  Your Email Address (Auto-generated)
+                </label>
+                <div className="form-input bg-gray-50 text-gray-700 cursor-not-allowed">
+                  {`${formData.firstName.toLowerCase().trim()}${formData.lastName.toLowerCase().trim()}`.replace(/\s+/g, '')}@aderoyalschools.org.ng
+                </div>
+                <p className="mt-1 text-sm text-gray-500">
+                  This will be your login email address
+                </p>
+              </div>
+            )}
 
             {/* Role-specific fields */}
             {formData.role === 'student' && (
