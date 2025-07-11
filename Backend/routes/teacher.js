@@ -280,13 +280,27 @@ router.post('/questions', [
     } = req.body;
 
     // Verify teacher has access to this subject
-    const teacher = await User.findById(req.user._id).populate('subjects');
-    const hasAccess = teacher.subjects.some(sub => sub._id.toString() === subject);
+    const subjectDoc = await Subject.findById(subject);
+    if (!subjectDoc) {
+      return res.status(404).json({
+        success: false,
+        message: 'Subject not found'
+      });
+    }
     
+    const hasAccess = subjectDoc.teachers.includes(req.user._id);
     if (!hasAccess) {
       return res.status(403).json({
         success: false,
         message: 'You do not have access to this subject'
+      });
+    }
+
+    // Verify that the selected class is assigned to this subject
+    if (!subjectDoc.classes.includes(classId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'This subject is not assigned to the selected class'
       });
     }
 
@@ -342,9 +356,16 @@ router.post('/questions', [
 
   } catch (error) {
     console.error('Create question error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      teacherId: req.user._id,
+      requestBody: req.body
+    });
     res.status(500).json({
       success: false,
-      message: 'Server error creating question'
+      message: 'Server error creating question',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });

@@ -515,7 +515,22 @@ const CreateExam = () => {
       resetQuestionForm();
 
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to create question');
+      console.error('Question creation error:', error);
+      console.error('Error response:', error.response?.data);
+      
+      let errorMessage = 'Failed to create question';
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.errors) {
+        // Handle validation errors
+        const validationErrors = error.response.data.errors;
+        errorMessage = validationErrors.map(err => err.msg).join(', ');
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      }
+      
+      toast.error(errorMessage, { duration: 5000 });
     } finally {
       setLoading(false);
     }

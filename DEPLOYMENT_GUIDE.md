@@ -153,7 +153,7 @@ Try logging in from the frontend - it should connect to the backend successfully
 
 ### 1. Create Admin Account
 The system will automatically create a default admin account on first run:
-- Email: `admin@aderoyalschools.org.ng`
+- Email: `admin@aderoyal.edu.ng`
 - Password: `admin123`
 
 **⚠️ IMPORTANT: Change this password immediately after first login!**
