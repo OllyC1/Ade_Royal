@@ -337,6 +337,11 @@ router.post('/questions', [
 
     if (questionType === 'Objective') {
       questionData.options = options;
+      // Set correctAnswer to the text of the first correct option
+      const correctOptions = options.filter(option => option.isCorrect);
+      if (correctOptions.length > 0) {
+        questionData.correctAnswer = correctOptions[0].text;
+      }
     } else {
       questionData.expectedAnswer = expectedAnswer;
       questionData.keywords = keywords || [];

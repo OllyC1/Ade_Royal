@@ -55,9 +55,6 @@ const questionSchema = new mongoose.Schema({
   }],
   correctAnswer: {
     type: String,
-    required: function() {
-      return this.questionType === 'Objective';
-    },
     trim: true
   },
   explanation: {

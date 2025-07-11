@@ -73,9 +73,14 @@ const corsOptions = {
       allowedOrigins.push(...corsOrigins);
     }
     
+    // Log the origin for debugging
+    console.log(`CORS check - Origin: ${origin}, Allowed: ${allowedOrigins.includes(origin)}`);
+    
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
+      // Log rejected origins for debugging
+      console.log(`CORS rejected origin: ${origin}`);
       callback(null, true); // Allow all origins temporarily for debugging
     }
   },
@@ -261,7 +266,8 @@ app.get('/api/health', (req, res) => {
     success: true,
     message: 'Server is running',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
+    version: '1.0.1-teacher-fix' // Added version for deployment trigger
   });
 });
 
