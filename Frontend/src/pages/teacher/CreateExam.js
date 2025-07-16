@@ -1296,15 +1296,24 @@ const CreateExam = () => {
                       Students will get {questionSelection.objective.count} random questions from the pool of {examQuestionPool.objective.length}.
                       {examQuestionPool.objective.length > 0 && (
                         <div className="mt-1">
-                          {[...new Set(examQuestionPool.objective.map(q => q.marks || 0))].length === 1 ? (
-                            <span className="text-green-600 font-medium">
-                              = {([...new Set(examQuestionPool.objective.map(q => q.marks || 0))][0] || 0) * questionSelection.objective.count} marks total
-                            </span>
-                          ) : (
-                            <span className="text-orange-600 font-medium">
-                              ≈ {Math.round((examQuestionPool.objective.reduce((sum, q) => sum + (q.marks || 0), 0) / examQuestionPool.objective.length) * questionSelection.objective.count)} marks (estimated)
-                            </span>
-                          )}
+                          {(() => {
+                            const validQuestions = examQuestionPool.objective.filter(q => q.marks && !isNaN(q.marks) && q.marks > 0);
+                            if (validQuestions.length === 0) {
+                              return <span className="text-red-600 font-medium">⚠ Questions have no marks assigned</span>;
+                            }
+                            
+                            const uniqueMarks = [...new Set(validQuestions.map(q => q.marks))];
+                            const selectionCount = questionSelection.objective.count || 0;
+                            
+                            if (uniqueMarks.length === 1) {
+                              const totalMarks = uniqueMarks[0] * selectionCount;
+                              return <span className="text-green-600 font-medium">= {totalMarks} marks total</span>;
+                            } else {
+                              const avgMarks = validQuestions.reduce((sum, q) => sum + q.marks, 0) / validQuestions.length;
+                              const estimatedTotal = Math.round(avgMarks * selectionCount);
+                              return <span className="text-orange-600 font-medium">≈ {estimatedTotal} marks (estimated)</span>;
+                            }
+                          })()}
                         </div>
                       )}
                     </div>
@@ -1323,15 +1332,24 @@ const CreateExam = () => {
                       Students will get {questionSelection.theory.count} random questions from the pool of {examQuestionPool.theory.length}.
                       {examQuestionPool.theory.length > 0 && (
                         <div className="mt-1">
-                          {[...new Set(examQuestionPool.theory.map(q => q.marks || 0))].length === 1 ? (
-                            <span className="text-green-600 font-medium">
-                              = {([...new Set(examQuestionPool.theory.map(q => q.marks || 0))][0] || 0) * questionSelection.theory.count} marks total
-                            </span>
-                          ) : (
-                            <span className="text-orange-600 font-medium">
-                              ≈ {Math.round((examQuestionPool.theory.reduce((sum, q) => sum + (q.marks || 0), 0) / examQuestionPool.theory.length) * questionSelection.theory.count)} marks (estimated)
-                            </span>
-                          )}
+                          {(() => {
+                            const validQuestions = examQuestionPool.theory.filter(q => q.marks && !isNaN(q.marks) && q.marks > 0);
+                            if (validQuestions.length === 0) {
+                              return <span className="text-red-600 font-medium">⚠ Questions have no marks assigned</span>;
+                            }
+                            
+                            const uniqueMarks = [...new Set(validQuestions.map(q => q.marks))];
+                            const selectionCount = questionSelection.theory.count || 0;
+                            
+                            if (uniqueMarks.length === 1) {
+                              const totalMarks = uniqueMarks[0] * selectionCount;
+                              return <span className="text-green-600 font-medium">= {totalMarks} marks total</span>;
+                            } else {
+                              const avgMarks = validQuestions.reduce((sum, q) => sum + q.marks, 0) / validQuestions.length;
+                              const estimatedTotal = Math.round(avgMarks * selectionCount);
+                              return <span className="text-orange-600 font-medium">≈ {estimatedTotal} marks (estimated)</span>;
+                            }
+                          })()}
                         </div>
                       )}
                     </div>
