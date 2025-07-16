@@ -1296,13 +1296,13 @@ const CreateExam = () => {
                       Students will get {questionSelection.objective.count} random questions from the pool of {examQuestionPool.objective.length}.
                       {examQuestionPool.objective.length > 0 && (
                         <div className="mt-1">
-                          {[...new Set(examQuestionPool.objective.map(q => q.marks))].length === 1 ? (
+                          {[...new Set(examQuestionPool.objective.map(q => q.marks || 0))].length === 1 ? (
                             <span className="text-green-600 font-medium">
-                              = {[...new Set(examQuestionPool.objective.map(q => q.marks))][0] * questionSelection.objective.count} marks total
+                              = {([...new Set(examQuestionPool.objective.map(q => q.marks || 0))][0] || 0) * questionSelection.objective.count} marks total
                             </span>
                           ) : (
                             <span className="text-orange-600 font-medium">
-                              ≈ {Math.round((examQuestionPool.objective.reduce((sum, q) => sum + q.marks, 0) / examQuestionPool.objective.length) * questionSelection.objective.count)} marks (estimated)
+                              ≈ {Math.round((examQuestionPool.objective.reduce((sum, q) => sum + (q.marks || 0), 0) / examQuestionPool.objective.length) * questionSelection.objective.count)} marks (estimated)
                             </span>
                           )}
                         </div>
@@ -1323,13 +1323,13 @@ const CreateExam = () => {
                       Students will get {questionSelection.theory.count} random questions from the pool of {examQuestionPool.theory.length}.
                       {examQuestionPool.theory.length > 0 && (
                         <div className="mt-1">
-                          {[...new Set(examQuestionPool.theory.map(q => q.marks))].length === 1 ? (
+                          {[...new Set(examQuestionPool.theory.map(q => q.marks || 0))].length === 1 ? (
                             <span className="text-green-600 font-medium">
-                              = {[...new Set(examQuestionPool.theory.map(q => q.marks))][0] * questionSelection.theory.count} marks total
+                              = {([...new Set(examQuestionPool.theory.map(q => q.marks || 0))][0] || 0) * questionSelection.theory.count} marks total
                             </span>
                           ) : (
                             <span className="text-orange-600 font-medium">
-                              ≈ {Math.round((examQuestionPool.theory.reduce((sum, q) => sum + q.marks, 0) / examQuestionPool.theory.length) * questionSelection.theory.count)} marks (estimated)
+                              ≈ {Math.round((examQuestionPool.theory.reduce((sum, q) => sum + (q.marks || 0), 0) / examQuestionPool.theory.length) * questionSelection.theory.count)} marks (estimated)
                             </span>
                           )}
                         </div>
