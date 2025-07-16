@@ -359,10 +359,16 @@ const CreateExam = () => {
             count: exam.questionBankSelection.theory?.count || 0
           }
         });
-        setExamQuestionPool({
-          objective: exam.questionBankSelection.objective?.questions || [],
-          theory: exam.questionBankSelection.theory?.questions || []
-        });
+        // Use embeddedQuestions for the actual question data with marks, not the IDs
+        if (exam.embeddedQuestions && exam.embeddedQuestions.length > 0) {
+          const objectiveQuestions = exam.embeddedQuestions.filter(q => q.questionType === 'Objective');
+          const theoryQuestions = exam.embeddedQuestions.filter(q => q.questionType === 'Theory');
+          
+          setExamQuestionPool({
+            objective: objectiveQuestions,
+            theory: theoryQuestions
+          });
+        }
       }
       
     } catch (error) {
