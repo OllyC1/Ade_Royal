@@ -247,32 +247,31 @@ const CreateExam = () => {
     }
   }, []);
 
-  useEffect(() => {
-    // Calculate total marks when questions change
-    const totalMarks = examQuestionPool.objective.length + examQuestionPool.theory.length;
-    setFormData(prev => ({
-      ...prev,
-      totalMarks,
-      passingMarks: Math.floor(totalMarks * 0.5) // Default to 50%
-    }));
-  }, [examQuestionPool]);
+  // Note: Total marks calculation is handled by the useEffect below that depends on both examQuestionPool and questionSelection
 
   // Calculate estimated total marks for the exam based on the random selection counts
   useEffect(() => {
     const calculateMarks = (pool, selectionCount) => {
-      if (pool.length === 0 || selectionCount === 0) return 0;
+      if (!pool || pool.length === 0) return 0;
+      
+      // If selectionCount is 0 or undefined, default to all questions in pool for edit mode
+      const effectiveSelectionCount = selectionCount || pool.length;
+      
+      // Ensure all questions have valid marks
+      const validQuestions = pool.filter(q => q.marks && !isNaN(q.marks) && q.marks > 0);
+      if (validQuestions.length === 0) return 0;
       
       // Check if all questions in the pool have the same marks
-      const uniqueMarks = [...new Set(pool.map(q => q.marks))];
+      const uniqueMarks = [...new Set(validQuestions.map(q => q.marks))];
       
       if (uniqueMarks.length === 1) {
         // All questions have the same marks - precise calculation
-        return uniqueMarks[0] * selectionCount;
+        return uniqueMarks[0] * effectiveSelectionCount;
       } else {
         // Different marks - use average (with warning shown in UI)
-        const totalMarksInPool = pool.reduce((sum, q) => sum + q.marks, 0);
-        const avgMarks = totalMarksInPool / pool.length;
-        return Math.round(avgMarks * selectionCount);
+        const totalMarksInPool = validQuestions.reduce((sum, q) => sum + q.marks, 0);
+        const avgMarks = totalMarksInPool / validQuestions.length;
+        return Math.round(avgMarks * effectiveSelectionCount);
       }
     };
 
@@ -281,11 +280,14 @@ const CreateExam = () => {
 
     const totalMarks = objectiveTotalMarks + theoryTotalMarks;
 
-    setFormData(prev => ({
-      ...prev,
-      totalMarks,
-      passingMarks: Math.floor(totalMarks * 0.5)
-    }));
+    // Only update if we have a valid total marks (not 0 or NaN)
+    if (totalMarks >= 0 && !isNaN(totalMarks)) {
+      setFormData(prev => ({
+        ...prev,
+        totalMarks,
+        passingMarks: Math.floor(totalMarks * 0.5)
+      }));
+    }
   }, [examQuestionPool, questionSelection]);
 
   const fetchTeacherAssignments = async () => {
@@ -328,13 +330,26 @@ const CreateExam = () => {
       
       // Populate questions if they exist
       if (exam.embeddedQuestions && exam.embeddedQuestions.length > 0) {
+        const objectiveQuestions = exam.embeddedQuestions.filter(q => q.questionType === 'Objective');
+        const theoryQuestions = exam.embeddedQuestions.filter(q => q.questionType === 'Theory');
+        
         setExamQuestionPool({
-          objective: exam.embeddedQuestions.filter(q => q.questionType === 'Objective'),
-          theory: exam.embeddedQuestions.filter(q => q.questionType === 'Theory')
+          objective: objectiveQuestions,
+          theory: theoryQuestions
+        });
+        
+        // Initialize question selection based on actual questions in pool
+        setQuestionSelection({
+          objective: {
+            count: objectiveQuestions.length
+          },
+          theory: {
+            count: theoryQuestions.length
+          }
         });
       }
       
-      // Handle question bank exams
+      // Handle question bank exams (this will override the above if it's a question bank exam)
       if (exam.useQuestionBank && exam.questionBankSelection) {
         setQuestionSelection({
           objective: {
@@ -1425,7 +1440,7 @@ const CreateExam = () => {
                         <input
                           type="number"
                           className="form-input bg-gray-50"
-                          value={formData.totalMarks}
+                          value={isNaN(formData.totalMarks) ? 0 : formData.totalMarks}
                           readOnly
                         />
                       </div>
@@ -1434,10 +1449,10 @@ const CreateExam = () => {
                         <input
                           type="number"
                           className="form-input"
-                          value={formData.passingMarks}
-                          onChange={(e) => setFormData({...formData, passingMarks: parseInt(e.target.value)})}
+                          value={isNaN(formData.passingMarks) ? 0 : formData.passingMarks}
+                          onChange={(e) => setFormData({...formData, passingMarks: parseInt(e.target.value) || 0})}
                           min="0"
-                          max={formData.totalMarks}
+                          max={isNaN(formData.totalMarks) ? 0 : formData.totalMarks}
                           required
                         />
                       </div>
@@ -1473,7 +1488,7 @@ const CreateExam = () => {
                       </div>
                       <div className="bg-purple-50 p-4 rounded-lg">
                         <div className="text-2xl font-bold text-purple-600">
-                          {formData.totalMarks}
+                          {isNaN(formData.totalMarks) ? 0 : formData.totalMarks}
                         </div>
                         <div className="text-sm text-purple-600">Total Marks</div>
                         <div className="text-xs text-purple-500 mt-1">
@@ -1499,7 +1514,7 @@ const CreateExam = () => {
                       </div>
                       <div className="bg-purple-50 p-4 rounded-lg">
                         <div className="text-2xl font-bold text-purple-600">
-                          {formData.totalMarks}
+                          {isNaN(formData.totalMarks) ? 0 : formData.totalMarks}
                         </div>
                         <div className="text-sm text-purple-600">Total Marks</div>
                       </div>
