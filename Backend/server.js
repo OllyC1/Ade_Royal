@@ -286,7 +286,61 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'OK',
     message: 'Ade-Royal CBT System is running',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    activeConnections: io.engine.clientsCount || 0
+  });
+});
+
+// Keep-alive mechanism - ping ourselves every 10 minutes
+if (process.env.NODE_ENV === 'production') {
+  const https = require('https');
+  
+  function selfPing() {
+    const url = process.env.RENDER_EXTERNAL_URL || 'https://ade-royal-cbt-backend.onrender.com';
+    
+    https.get(`${url}/api/health`, (res) => {
+      console.log(`[${new Date().toISOString()}] Self-ping successful: ${res.statusCode}`);
+    }).on('error', (err) => {
+      console.error(`[${new Date().toISOString()}] Self-ping failed:`, err.message);
+    });
+  }
+  
+  // Ping every 12 minutes (just before the 15-minute sleep)
+  setInterval(selfPing, 12 * 60 * 1000);
+  console.log('Self-ping keep-alive enabled');
+}
+
+// Memory monitoring and cleanup
+if (process.env.NODE_ENV === 'production') {
+  setInterval(() => {
+    const usage = process.memoryUsage();
+    const usedMB = Math.round(usage.heapUsed / 1024 / 1024);
+    
+    if (usedMB > 400) { // Render free tier has ~512MB limit
+      console.warn(`High memory usage: ${usedMB}MB - forcing garbage collection`);
+      if (global.gc) {
+        global.gc();
+      }
+    }
+  }, 5 * 60 * 1000); // Check every 5 minutes
+}
+
+// Graceful shutdown handling
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    mongoose.connection.close();
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT received, shutting down gracefully');
+  server.close(() => {
+    mongoose.connection.close();
+    process.exit(0);
   });
 });
 
