@@ -359,10 +359,23 @@ const CreateExam = () => {
             count: exam.questionBankSelection.theory?.count || 0
           }
         });
-        // Use embeddedQuestions for the actual question data with marks, not the IDs
+        
+        // For question bank exams, we need both embedded questions (for display with marks) 
+        // and original question IDs (for preview functionality)
         if (exam.embeddedQuestions && exam.embeddedQuestions.length > 0) {
           const objectiveQuestions = exam.embeddedQuestions.filter(q => q.questionType === 'Objective');
           const theoryQuestions = exam.embeddedQuestions.filter(q => q.questionType === 'Theory');
+          
+          // Add the original question IDs to the embedded questions for preview
+          const objectiveIds = exam.questionBankSelection.objective?.questions || [];
+          const theoryIds = exam.questionBankSelection.theory?.questions || [];
+          
+          objectiveQuestions.forEach((q, index) => {
+            q._id = objectiveIds[index] || q._id;
+          });
+          theoryQuestions.forEach((q, index) => {
+            q._id = theoryIds[index] || q._id;
+          });
           
           setExamQuestionPool({
             objective: objectiveQuestions,
@@ -760,11 +773,11 @@ const CreateExam = () => {
     try {
       const response = await axios.post('/api/teacher/preview-random-selection', {
         objective: {
-          questions: examQuestionPool.objective,
+          questions: examQuestionPool.objective.map(q => q._id).filter(id => id),
           count: questionSelection.objective.count
         },
         theory: {
-          questions: examQuestionPool.theory,
+          questions: examQuestionPool.theory.map(q => q._id).filter(id => id),
           count: questionSelection.theory.count
         }
       });
