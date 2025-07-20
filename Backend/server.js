@@ -307,9 +307,9 @@ if (process.env.NODE_ENV === 'production') {
     });
   }
   
-  // Ping every 12 minutes (just before the 15-minute sleep)
-  setInterval(selfPing, 12 * 60 * 1000);
-  console.log('Self-ping keep-alive enabled');
+  // Ping every 5 minutes (much more aggressive to prevent sleep)
+  setInterval(selfPing, 5 * 60 * 1000);
+  console.log('Self-ping keep-alive enabled - pinging every 5 minutes');
 }
 
 // Memory monitoring and cleanup
