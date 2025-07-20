@@ -404,8 +404,17 @@ router.post('/exams/:examId/answer', [
   })
 ], async (req, res) => {
   try {
+    console.log('=== ANSWER SAVE REQUEST ===');
+    console.log('Timestamp:', new Date().toISOString());
+    console.log('Student ID:', req.user._id);
+    console.log('Exam ID:', req.params.examId);
+    console.log('Request Body:', JSON.stringify(req.body, null, 2));
+    console.log('User Agent:', req.get('User-Agent'));
+    console.log('IP Address:', req.ip);
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('VALIDATION ERRORS:', errors.array());
       return res.status(400).json({
         success: false,
         message: 'Validation failed',
@@ -419,6 +428,7 @@ router.post('/exams/:examId/answer', [
 
     const exam = await Exam.findById(examId);
     if (!exam) {
+      console.log('ERROR: Exam not found:', examId);
       return res.status(404).json({
         success: false,
         message: 'Exam not found'
@@ -431,6 +441,7 @@ router.post('/exams/:examId/answer', [
     );
 
     if (!attempt) {
+      console.log('ERROR: Exam attempt not found for student:', studentId);
       return res.status(404).json({
         success: false,
         message: 'Exam attempt not found'
@@ -438,11 +449,14 @@ router.post('/exams/:examId/answer', [
     }
 
     if (attempt.isCompleted) {
+      console.log('ERROR: Attempt already completed:', studentId);
       return res.status(400).json({
         success: false,
         message: 'Exam has already been completed'
       });
     }
+
+    console.log('Current attempt answers count BEFORE save:', attempt.answers.length);
 
     // Find the question to get the correct question number
     let questionNumber = null;
@@ -452,10 +466,12 @@ router.post('/exams/:examId/answer', [
         questionId.includes('embedded_') && questionId === `embedded_${q.questionNumber}`
       );
       questionNumber = question ? question.questionNumber : null;
+      console.log('Found embedded question:', question ? { number: question.questionNumber, type: question.questionType } : 'NOT FOUND');
     } else if (exam.questions && exam.questions.length > 0) {
       await exam.populate('questions');
       const question = exam.questions.find(q => q._id?.toString() === questionId.toString());
       questionNumber = question ? question.questionNumber : null;
+      console.log('Found legacy question:', question ? { number: question.questionNumber, type: question.questionType } : 'NOT FOUND');
     }
 
     // If we can't find the question number, extract it from questionId if it's in embedded format
@@ -463,6 +479,7 @@ router.post('/exams/:examId/answer', [
       const match = questionId.match(/embedded_(\d+)/);
       if (match) {
         questionNumber = parseInt(match[1]);
+        console.log('Extracted question number from embedded ID:', questionNumber);
       }
     }
 
@@ -472,9 +489,23 @@ router.post('/exams/:examId/answer', [
       (ans.questionNumber && questionNumber && ans.questionNumber === questionNumber)
     );
 
+    console.log('Existing answer search result:', {
+      existingAnswerIndex,
+      searchCriteria: {
+        byQuestionId: questionId,
+        byQuestionNumber: questionNumber
+      },
+      existingAnswers: attempt.answers.map(ans => ({
+        questionId: ans.questionId,
+        questionNumber: ans.questionNumber,
+        answer: ans.answer
+      }))
+    });
+
     // Fallback to index-based numbering if still no question number
     if (!questionNumber) {
       questionNumber = existingAnswerIndex >= 0 ? attempt.answers[existingAnswerIndex].questionNumber : attempt.answers.length + 1;
+      console.log('Using fallback question number:', questionNumber);
     }
 
     const answerData = {
@@ -485,11 +516,15 @@ router.post('/exams/:examId/answer', [
       answeredAt: new Date()
     };
 
-    console.log('Saving answer:', answerData);
+    console.log('Prepared answer data:', answerData);
 
     if (existingAnswerIndex >= 0) {
+      console.log('UPDATING existing answer at index:', existingAnswerIndex);
+      console.log('Old answer:', attempt.answers[existingAnswerIndex]);
       attempt.answers[existingAnswerIndex] = answerData;
+      console.log('New answer:', attempt.answers[existingAnswerIndex]);
     } else {
+      console.log('ADDING new answer');
       attempt.answers.push(answerData);
     }
 
@@ -498,7 +533,16 @@ router.post('/exams/:examId/answer', [
       attempt.timeSpent = (attempt.timeSpent || 0) + timeSpent;
     }
 
+    console.log('Current attempt answers count AFTER update:', attempt.answers.length);
+    console.log('All current answers:', attempt.answers.map(ans => ({
+      questionNumber: ans.questionNumber,
+      questionId: ans.questionId,
+      answer: ans.answer,
+      answeredAt: ans.answeredAt
+    })));
+
     await exam.save();
+    console.log('SUCCESSFULLY saved answer to database');
 
     res.json({
       success: true,
@@ -506,7 +550,14 @@ router.post('/exams/:examId/answer', [
     });
 
   } catch (error) {
-    console.error('Save answer error:', error);
+    console.error('=== ANSWER SAVE ERROR ===');
+    console.error('Error details:', error);
+    console.error('Stack trace:', error.stack);
+    console.error('Request details:', {
+      examId: req.params.examId,
+      studentId: req.user._id,
+      body: req.body
+    });
     res.status(500).json({
       success: false,
       message: 'Server error saving answer'
@@ -519,16 +570,31 @@ router.post('/exams/:examId/answer', [
 // @access  Private/Student
 router.post('/exams/:examId/submit', async (req, res) => {
   try {
+    console.log('=== EXAM SUBMISSION REQUEST ===');
+    console.log('Timestamp:', new Date().toISOString());
+    console.log('Student ID:', req.user._id);
+    console.log('Exam ID:', req.params.examId);
+    console.log('User Agent:', req.get('User-Agent'));
+    console.log('IP Address:', req.ip);
+
     const { examId } = req.params;
     const studentId = req.user._id;
 
     const exam = await Exam.findById(examId);
     if (!exam) {
+      console.log('ERROR: Exam not found for submission:', examId);
       return res.status(404).json({
         success: false,
         message: 'Exam not found'
       });
     }
+
+    console.log('Exam found:', {
+      examId: exam._id,
+      title: exam.title,
+      totalQuestions: exam.embeddedQuestions?.length || exam.questions?.length || 0,
+      totalMarks: exam.totalMarks
+    });
 
     // Find student's attempt
     const attempt = exam.attempts.find(att => 
@@ -536,21 +602,48 @@ router.post('/exams/:examId/submit', async (req, res) => {
     );
 
     if (!attempt) {
+      console.log('ERROR: Exam attempt not found for student:', studentId);
       return res.status(404).json({
         success: false,
         message: 'Exam attempt not found'
       });
     }
 
+    console.log('Student attempt found:', {
+      studentId: attempt.student,
+      startTime: attempt.startTime,
+      answersCount: attempt.answers?.length || 0,
+      isCompleted: attempt.isCompleted,
+      timeSpent: attempt.timeSpent
+    });
+
+    console.log('All answers before submission:', attempt.answers.map(ans => ({
+      questionNumber: ans.questionNumber,
+      questionId: ans.questionId,
+      answer: ans.answer,
+      answeredAt: ans.answeredAt
+    })));
+
     if (attempt.isCompleted) {
+      console.log('ERROR: Attempt already completed for student:', studentId);
       return res.status(400).json({
         success: false,
         message: 'Exam has already been submitted'
       });
     }
 
+    console.log('Starting grading process...');
     // Calculate final score and grade the exam
     const gradingResult = await gradeExamAttempt(exam, attempt);
+
+    console.log('Grading completed:', {
+      totalScore: gradingResult.actualScore || gradingResult.totalScore,
+      percentage: gradingResult.actualPercentage || gradingResult.percentage,
+      gradingStatus: gradingResult.gradingStatus,
+      totalQuestions: gradingResult.totalQuestions,
+      answeredQuestions: gradingResult.answeredQuestions,
+      gradedAnswersCount: gradingResult.gradedAnswers?.length || 0
+    });
 
     // Mark as completed but hide scores until results are released
     attempt.isCompleted = true;
@@ -567,8 +660,10 @@ router.post('/exams/:examId/submit', async (req, res) => {
     const hasTheoryQuestions = gradingResult.gradedAnswers.some(ans => ans.needsGrading);
     attempt.needsGrading = hasTheoryQuestions;
 
+    console.log('Answers before grading update:', attempt.answers.length);
     // Update answers with grading results
     attempt.answers = gradingResult.gradedAnswers;
+    console.log('Answers after grading update:', attempt.answers.length);
 
     await exam.save();
 
@@ -962,6 +1057,11 @@ const autoSubmitExam = async (exam, attempt, studentId) => {
 
 // Helper function to grade exam attempt
 const gradeExamAttempt = async (exam, attempt) => {
+  console.log('=== GRADING EXAM ATTEMPT ===');
+  console.log('Exam ID:', exam._id);
+  console.log('Student ID:', attempt.student);
+  console.log('Input answers count:', attempt.answers?.length || 0);
+  
   let totalScore = 0;
   let objectiveScore = 0;
   let theoryScore = 0;
@@ -976,9 +1076,11 @@ const gradeExamAttempt = async (exam, attempt) => {
     let examQuestions = [];
     if (exam.embeddedQuestions && exam.embeddedQuestions.length > 0) {
       examQuestions = exam.embeddedQuestions;
+      console.log('Using embedded questions:', examQuestions.length);
     } else if (exam.questions && exam.questions.length > 0) {
       await exam.populate('questions');
       examQuestions = exam.questions;
+      console.log('Using legacy questions:', examQuestions.length);
     }
 
     // If no questions found, return default result
@@ -1028,13 +1130,28 @@ const gradeExamAttempt = async (exam, attempt) => {
     }
 
     // Grade each answer
+    console.log('Processing answers - Student submitted:', attempt.answers.map(ans => ({
+      questionId: ans.questionId,
+      questionNumber: ans.questionNumber,
+      answer: ans.answer,
+      answeredAt: ans.answeredAt
+    })));
+
+    console.log('Available exam questions:', examQuestions.map(q => ({
+      questionNumber: q.questionNumber,
+      questionType: q.questionType,
+      marks: q.marks,
+      _id: q._id
+    })));
+
     for (const answer of attempt.answers) {
       let question;
       
       console.log('Processing answer:', { 
         questionId: answer.questionId, 
         questionNumber: answer.questionNumber,
-        answer: answer.answer 
+        answer: answer.answer,
+        answeredAt: answer.answeredAt
       });
       
       // Find the question (handle both embedded and legacy structures)
@@ -1062,14 +1179,23 @@ const gradeExamAttempt = async (exam, attempt) => {
       }
 
       if (!question) {
-        console.warn('Question not found for answer:', {
+        console.error('CRITICAL: Question not found for answer:', {
           questionId: answer.questionId,
           questionNumber: answer.questionNumber,
+          answer: answer.answer,
           availableQuestions: examQuestions.map(q => ({ 
             id: q._id, 
             number: q.questionNumber, 
             type: q.questionType 
           }))
+        });
+        // Still add the answer to gradedAnswers to prevent data loss
+        gradedAnswers.push({
+          ...answer,
+          questionType: 'Unknown',
+          isCorrect: false,
+          marksObtained: 0,
+          needsGrading: true
         });
         continue;
       }
